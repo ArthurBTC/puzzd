@@ -1,0 +1,142 @@
+﻿{% extends 'mainapp/base.html' %}
+{% block title %}Test{% endblock %}
+{% block content %}
+{% load staticfiles %}
+
+<div>{{totalTime}}</div>
+{% for user in users %}
+<div>{{user.username}} - {{user.time}} - {{user.timepc}}</div>
+{% endfor %}
+
+Vous êtes {{user.username}}
+
+{% if goingPn.user == request.user %}
+    <img id="greenButton" src="{% static 'mainapp/png/greenButton.png' %}" />
+{% endif %}
+
+<div class="table-responsive">
+  <table class="table">
+    <tr id ="nextRow">
+        <td class="pnId">{{nextPn.id}}</td>
+        <td class="username">{{nextPn.user.username}}</td>
+        <td></td>
+        <td class="waiting"></td>
+    </tr>
+    <tr id="currentRow">
+        <td class="pnId">{{goingPn.id}}</td>
+        <td class="username">{{goingPn.user.username}}</td>
+        <td></td>
+        <td class="waiting"></td>
+    </tr>
+    {% for pn in oldPns %}
+    <tr class="previousRows">
+        <td class="pnId">{{pn.id}}</td>
+        <td class="username">{{pn.user.username}}</td>
+        <td>{{pn.timeDiff}}</td>
+        <td class="waiting">{{pn.wtPnType}}</td>
+    </tr>    
+    {% endfor %}
+    
+  </table>
+</div>
+
+<div id="buttonsFooter">
+
+    <div class="buts" id="firstBut">
+        <img class="butImg" src="{% static 'mainapp/png/firstBut.png' %}">
+    </div>
+    <div class="buts" id="secondBut">
+        <img class="butImg" src="{% static 'mainapp/png/secondBut.png' %}">
+    </div>
+    <div class="buts" id="thirdBut">
+        <img class="butImg" src="{% static 'mainapp/png/thirdBut.png' %}">
+    </div>
+
+</div>
+
+
+
+<script>
+    
+    var $selectedtr;
+
+    $('tr').click(function(){
+    
+           $('.buts').css('background-color','black');
+           $('tr').css('background-color','');
+           $('tr').css('color','black');
+           $(this).css('background-color','black');
+           $(this).css('color','white');
+           $selectedtr = $(this);
+           
+           $waiting = $(this).find(".waiting").eq(0).text();
+
+           if ($waiting == "Answer"){
+                $('#firstBut').css('background-color','grey');
+           } else if ($waiting == "Question"){
+                $('#secondBut').css('background-color','grey');
+           }
+           
+           $user = $(this).find(".username").eq(0).text();
+           
+           if ($user == '{{user.username}}') {
+                $(".buts").css('background-color','darkblue');
+           };
+           
+    })
+    
+    $('#firstBut').click(function(){
+        $id = $selectedtr.find('.pnId').eq(0).text();
+        $user = $selectedtr.find(".username").eq(0).text();
+        
+        if ($user != '{{user.username}}') { 
+        
+            $.post('/butHandler/',
+                {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id': $id,
+                    'type': '0'
+                }, 
+                function(data) {
+                    location.reload();
+                });
+        }
+        
+    })    
+
+    $('#secondBut').click(function(){
+    
+        $id = $selectedtr.find('.pnId').eq(0).text();
+        $user = $selectedtr.find(".username").eq(0).text();
+        
+        if ($user != '{{user.username}}') {         
+            $.post('/butHandler/',
+                {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id': $id,
+                    'type': '1'
+                }, 
+                function(data) {
+                    location.reload();
+                }); 
+        }   
+    })    
+    
+    $('#thirdBut').click(function(){
+
+    })  
+
+    $('#greenButton').click(function(){
+        $.post('/nextHandler/',
+            {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            }, 
+            function(data) {
+                location.reload();
+            });     
+        
+    });
+    
+</script>
+
+{% endblock %}

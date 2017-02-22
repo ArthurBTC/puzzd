@@ -1,0 +1,62 @@
+body{
+    padding-bottom:100px;
+}
+
+#newtRow{
+
+}
+
+#currentRow{
+
+}
+
+.previousRows{
+
+}
+
+#greenButton{
+    width:40%;
+    margin-left: auto;
+    margin-right: auto;    
+    display:block;
+}
+
+#buttonsFooter{
+    position:fixed;
+    bottom:0px;
+    left:0px;
+    width:100%;
+    height:100px;
+    background-color:grey;
+}
+
+.buts{
+    position:absolute;
+    height:99%;
+    bottom:0px;
+    width:33%;
+    background-color:black;  
+}
+
+#firstBut{
+    left:0px;
+}
+#secondBut{
+    left:33.5%;
+}
+#thirdBut{
+    left:67%;
+}
+
+.butImg{
+    max-width:90%;
+    max-height:90%;
+    margin-left: auto;
+    margin-right: auto;    
+    display:block;
+    vertical-align: middle;
+}
+
+#chart_div{
+    width:100%;
+}

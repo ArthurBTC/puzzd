@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  {% load staticfiles %}  
+    <title>Puzzd.fr - {% block title %}{% endblock %}</title>
+    <link rel="shortcut icon" type="image/x-icon" href="" />
+    
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+    {% block description %}
+    {% endblock %}
+    
+    <link rel="stylesheet" type="text/css" href="{% static 'mainapp/css/bootstrap.min.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'mainapp/css/firstStyle.css' %}">
+	
+    <link href="https://fonts.googleapis.com/css?family=Roboto|Courgette|Satisfy|Handlee|Ubuntu|Roboto+Slab" rel="stylesheet">
+    
+    <script src="{% static 'mainapp/js/jquery.min.js' %}"></script>
+    <script src="{% static 'mainapp/js/bootstrap.min.js' %}"></script>
+    
+</head>
+<body>
+
+    <div class="container-fluid"> 
+        {% block content %}
+        {% endblock %}	
+    </div>
+</body>
+</html>
