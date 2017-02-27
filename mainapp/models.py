@@ -37,6 +37,11 @@ class Participation(models.Model):
     linkedToPn = models.ForeignKey('self', blank=True, null=True)
     linkType = models.CharField(max_length = 30, choices = LINK_TYPE, blank=True, null=True)
     
+    totalPoints = models.IntegerField(default = 0, blank=True, null=True)
+    userPoints = models.IntegerField(default = 0, blank=True, null=True)
+    delayPoints = models.IntegerField(default = 0, blank=True, null=True)
+    bonusPoints = models.IntegerField(default = 0, blank=True, null=True)
+    
     def __str__(self):
         return str(self.id)
     

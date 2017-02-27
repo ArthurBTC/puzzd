@@ -38,14 +38,18 @@ body{
     background-color:black;  
 }
 
-#firstBut{
+#answerBut{
     left:0px;
 }
 #secondBut{
     left:33.5%;
 }
-#thirdBut{
-    left:67%;
+#loveBut{
+    left:33.5%;
+}
+
+#newBut{
+    left:67.5%;    
 }
 
 .butImg{
@@ -59,4 +63,19 @@ body{
 
 #chart_div{
     width:100%;
+}
+
+.smallAnswer{
+    height:20px;
+}
+
+#goingMessage{
+    color:rgb(122,201,67);
+    font-size:30px;
+    text-align:center;
+}
+
+#stats{
+    float:right;
+    height:50px;
 }
