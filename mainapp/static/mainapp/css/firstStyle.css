@@ -73,9 +73,18 @@ body{
     color:rgb(122,201,67);
     font-size:30px;
     text-align:center;
+    margin: 10px 0px 10px 0px
 }
 
 #stats{
     float:right;
     height:50px;
+}
+
+#sound{
+    text-align:center;
+    height:50px;
+    width:50px;
+    margin-left: auto;
+    margin-right: auto;
 }

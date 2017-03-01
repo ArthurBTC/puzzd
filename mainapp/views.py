@@ -1,4 +1,4 @@
-﻿from django.shortcuts import render
+from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils import timezone
 
@@ -17,9 +17,19 @@ from django.contrib.auth.decorators import user_passes_test
 
 from .models import *
 
+
+from django.core.signals import request_finished
+from django.db.models.signals import post_save
+
+from django.dispatch import receiver
+import django.dispatch
+from mainapp.signals import *
+
+
+
 @login_required
 def index(request):
-    print('lol')
+    
     waitingPns = Participation.objects.filter(status='0').filter(user = request.user)
 
     try:
@@ -51,7 +61,7 @@ def index(request):
         ##Calcul du temps écoulé
         pn.timeDiff = pn.endTime - pn.startTime        
         seconds = pn.timeDiff.total_seconds() 
-        minutes = (seconds % 3600) // 60
+        minutes = (seconds) // 60
         seconds = seconds - minutes * 60
         pn.seconds = seconds    
         pn.minutes = minutes    
@@ -90,7 +100,7 @@ def statistics(request):
     
     
     seconds = totalTime.total_seconds() 
-    minutes = (seconds % 3600) // 60
+    minutes = (seconds) // 60
     seconds = seconds - minutes * 60
 
     
@@ -107,8 +117,6 @@ def statistics(request):
                             'minutes':minutes,
                             'theoricTimePC':theoricTimePC,
                             'oldPns':oldPns})      
- 
-    
  
 def test(request):
     return render(request,'mainapp/test.html',{})
@@ -162,8 +170,6 @@ def newHandler(request):
             
         return HttpResponse('Ok')
 
-        
-        
             
     return redirect('/')
 
@@ -195,7 +201,7 @@ def nextCalculation():
         for user in users:
             userTimePC = user.time/totalTime 
             userPoints[user.pk] = 200 * (theoricTimePC - userTimePC) / ( (userTimePC+0.0001) * (1.00001 - userTimePC) )        
-            print(user.username +' : '+str(userPoints[user.pk]))
+            # print(user.username +' : '+str(userPoints[user.pk]))
     
         ##Calculons le nombre de point pour chaque PN:
         
@@ -218,13 +224,13 @@ def nextCalculation():
             ##On additionne le tout
             wtpn.points = userPoints[wtpn.user.pk] + delayPoints + bonus
             
-            print( str(wtpn.pk) +' : '+str(wtpn.points)+' --> '
-                                    + str(userPoints[wtpn.user.pk]) 
-                                    + ' + '
-                                    +str(delayPoints) 
-                                    + ' + '
-                                    +str(bonus) 
-                 )
+            # print( str(wtpn.pk) +' : '+str(wtpn.points)+' --> '
+                                    # + str(userPoints[wtpn.user.pk]) 
+                                    # + ' + '
+                                    # +str(delayPoints) 
+                                    # + ' + '
+                                    # +str(bonus) 
+                 # )
             
             ##Si le score dépasse le score maximal précédent, on marque le nouveau champion
             if(wtpn.points > maxPoints):    
@@ -245,46 +251,81 @@ def nextCalculation():
         maxWtpn.save()
              
         return maxWtpn    
-    
+
+        
 def nextUpdate():
         
- 
     goingPn = Participation.objects.filter(status='1')   
     currentNextPn = Participation.objects.filter(status='next')   
     
-    if currentNextPn.count() == 0:   
-        newNextPn = nextCalculation()   
+    ##S'il y a ni going, ni next
+    if goingPn.count() == 0 and currentNextPn.count() == 0:
+        newNextPn = nextCalculation()
         if newNextPn:
-            if goingPn.count()>0:   
-                newNextPn.status = 'next'
-            elif goingPn.count()==0:
-                newNextPn.status = '1'
-                newNextPn.startTime = datetime.now()
-        
+            ##S'il y a une participation de dispo, on la met en going
+            newNextPn.status = '1'
+            newNextPn.startTime = datetime.now()
             newNextPn.save()
+            ##... on reload les screens, et on lance l'enregistrement
+            beginSignal.send(None)
+            my_signal.send(None)
+            
 
+    
+    ##S'il y a un going mais pas de next   
+    elif goingPn.count()>0 and currentNextPn.count() == 0:
+        newNextPn = nextCalculation()
+        if newNextPn:
+            ##S'il y a une participation de dispo, on la met en next
+            newNextPn.status = 'next'
+            newNextPn.save()
+            ##...et on ne va pas envoyer de signal 
+            
+
+            
+    ##S'il n'y a pas de going mais il y a un next
+    elif goingPn.count()==0 and currentNextPn.count() > 0:
+        ##On va lancer la next
+        pn = currentNextPn[0]
+        pn.status = '1'
+        pn.startTime = datetime.now()
+        pn.save()
+        ##On envoie les signaux..
+        beginSignal.send(None)
+        my_signal.send(None)
+        
+        ##Et on relance nextUpdate()
+        nextUpdate()
+        
+
+        
+    ##S'il n'y a un going et un next, on ne fait rien...
+                                 
 def nextHandler(request):
 
     goingPn = Participation.objects.get(status='1')
-    if request.user == goingPn.user:
-        ##Current devient old
-        goingPn = Participation.objects.get(status='1')    
+    if request.user == goingPn.user:       
+        ##Current devient old    
         goingPn.status = 2
         goingPn.endTime = datetime.now()
         goingPn.save()    
+        ##Et on stop l'enregistrement
+        stopSignal.send(None)
         
-        ##Next, si elle existe, devient current
-        try:
-            nextPn = Participation.objects.get(status='next')           
-            nextPn.status = 1
-            nextPn.startTime = datetime.now()
-            nextPn.save()
-        except:
-            i = 1
-        
+        ##Maintenant, on lance l'update
         nextUpdate()
-    
-    
+        
     return redirect('/')
     
+def soundFileHandler(request):
+    pn = Participation.objects.order_by('-endTime')[0]
+    pn.soundFile = request.FILES['file']
+    pn.save()
     
+    return HttpResponse("yeaaaaaah")
+    
+def sounder(request):
+
+    
+
+    return render(request,'mainapp/sounder.html',{})

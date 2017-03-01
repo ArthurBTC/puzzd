@@ -10,6 +10,9 @@ urlpatterns = [
     url(r'^butHandler/', views.butHandler, name='butHandler'),
     url(r'^newHandler/', views.newHandler, name='newHandler'),
     url(r'^nextHandler/', views.nextHandler, name='nextHandler'),  
+    url(r'^sounder/', views.sounder, name='sounder'),  
+    url(r'^soundFileHandler/', views.soundFileHandler, name='soundFileHandler'),
+    
     url(r'^statistics/', views.statistics, name='statistics'),
     url(r'^test/', views.test, name='test'), 
     url(r'^login/$', auth_views.login,
