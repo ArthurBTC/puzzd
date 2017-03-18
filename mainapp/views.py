@@ -340,21 +340,21 @@ def generateCueFile(iddebate):
     file = open("CueFile_"+str(iddebate)+".txt","w") 
     file.write('FILE "debatmachine.MP3" MP3\n')
     
-
-    
     i=1
     for pn in pns:  
 
         timedelta = pn.startTime - pns[0].startTime
         seconds = timedelta.total_seconds()
-        hours = seconds // 3600
-        minutes = (seconds % 3600) // 60
+        # hours = seconds // 3600
+        # minutes = (seconds % 3600) // 60
+        minutes = seconds  // 60
         seconds = seconds % 60
     
         file.write("  TRACK "+'%02d' % i+" AUDIO\n")
         file.write('    TITLE "Default"\n')
         file.write('    PERFORMER "'+pn.user.username+'"\n')
-        file.write('    INDEX 01 '+'%02d' % minutes+':'+'%02d' % seconds+':00\n')
+        # file.write('    INDEX 01 '+'%02d' % minutes+':'+'%02d' % seconds+':00\n')
+        file.write('    INDEX 01 '+str(int(minutes))+':'+'%02d' % seconds+':00\n')
         i=i+1
     file.close()
     
@@ -362,3 +362,15 @@ def debatesList(request):
     debates = Debate.objects.filter(participants__id=request.user.id)
     # debates = Debate.objects.all()
     return render(request,'mainapp/debatesList.html',{'debates':debates})
+
+def audioPaths(iddebate):
+    debate = Debate.objects.get(pk = iddebate)
+    pns = Participation.objects.filter(debate = debate).order_by('startTime')
+    i = 1
+    for pn in pns:
+        pn.soundFile = "debateSounds/"+str(iddebate)+"/wala ("+str(i)+").mp3"
+        pn.save()
+        i=i+1
+    
+    
+    
