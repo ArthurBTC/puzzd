@@ -2,64 +2,65 @@
 {% block title %}Test{% endblock %}
 {% block content %}
 {% load staticfiles %}
-
-
-
 <div class = "row">
-    <div class="col-xs-4">
-{{user.username}} <audio id="audioPlayer" src=""></audio>
+    <div class="col-xs-12">
+        <div id="topzone" class = "row">
+            
+            <div id="waitingCount">{{allWaitingCount}}</div>
+            <img id="stats" src="{% static 'mainapp/png/stats.png' %}" onclick="document.location.href='/statistics/{{iddebate}}'"/>        
+
+            <!-- <div class="col-xs-4"> -->
+        <!-- {{user.username}} <audio id="audioPlayer" src=""></audio> -->
+            <!-- </div> -->
+            
+            <!-- <div  class="col-xs-4"> -->
+                <!-- <img id ="sound" src="{% static 'mainapp/png/sound.png' %}"> -->
+            <!-- </div> -->
+            
+
+            <!-- {% if goingPn.user == request.user %} -->
+
+            <!-- <img id="greenButton" src="{% static 'mainapp/png/greenOk.png' %}" /> -->
+
+            <!-- {% endif %} -->
+            
+
+            <div id="goingMessage">
+            
+            {% if goingPn.user == request.user %}
+            
+                {% if goingPn.linkedToPn %}
+                    Réponse à {{goingPn.linkedToPn.user.username}} sur {{goingPn.linkedToPn.id}}
+                {% else %}
+                    Nouvelle participation   
+                {% endif %}
+                ({{goingPn.id}})
+                
+                <img id="greenButton" src="{% static 'mainapp/png/greenOk.png' %}" />
+                
+            {% elif goingPn %}   
+            
+                {% if goingPn.linkedToPn %}
+                    {{goingPn.user.username}} répond à {{goingPn.linkedToPn.user.username}}
+                {% else %}
+                    Nouvelle participation de {{goingPn.user.username}}
+                {% endif %}  
+                ({{goingPn.id}})
+                
+            {% else %}
+
+                Pas de demande de parole
+              
+            {% endif %}
+                
+            </div>     
+
+        </div>
+            
     </div>
+</div>    
     
-    <div  class="col-xs-4">
-        <img id ="sound" src="{% static 'mainapp/png/sound.png' %}">
-    </div>
-    
-    <div  class="col-xs-4">
-        <img id="stats" src="{% static 'mainapp/png/stats.png' %}" onclick="document.location.href='/statistics/'"/>        
-    </div>
-</div>
-
-
-{% if goingPn.user == request.user %}
-<div class = "row">
-    <div id="" class="col-xs-12">
-        <img id="greenButton" src="{% static 'mainapp/png/greenOk.png' %}" />
-    </div>     
-</div>
-<div class = "row">
-    <div id="goingMessage" class="col-xs-12">
-    {% if goingPn.linkedToPn %}
-        Vous répondez à {{goingPn.linkedToPn.user.username}} sur l'intervention {{goingPn.linkedToPn.id}}
-    {% else %}
-        Nouvelle participation    
-    {% endif %}
-    </div>     
-</div>
-
-{% elif goingPn %}
-<div class = "row">
-    <div id="goingMessage" class="col-xs-12">
-    {% if goingPn.linkedToPn %}
-        {{goingPn.user.username}} répond à {{goingPn.linkedToPn.user.username}}
-    {% else %}
-        Nouvelle participation de {{goingPn.user.username}} 
-    {% endif %}
-    </div>     
-</div>
-
-{% else %}
-
-<div class = "row">
-    <div id="goingMessage" class="col-xs-12">
-    Pas de demande de parole
-    </div>     
-</div>
-
-{% endif %}
-
-Il y a {{allWaitingCount}} demande(s) de prise de parole
-
-<div class="table-responsive">
+<div id="tablezone" class="table-responsive">
   <table class="table">
   
     {% if nextPn %}
@@ -99,9 +100,6 @@ Il y a {{allWaitingCount}} demande(s) de prise de parole
   </table>
 </div>
 
-
-
-
 <div id="buttonsFooter">
 
     <div class="buts" id="answerBut">
@@ -111,7 +109,6 @@ Il y a {{allWaitingCount}} demande(s) de prise de parole
         <img class="butImg" src="{% static 'mainapp/png/secondBut.png' %}">
     </div> -->
     
-   
     
     <div class="buts" id="loveBut">
         <img class="butImg" src="{% static 'mainapp/png/loveBut.png' %}">
@@ -131,14 +128,21 @@ Il y a {{allWaitingCount}} demande(s) de prise de parole
         $("#newBut").css('background-color','grey');
     {% endif %}
 
-    $("#answerBut,#loveBut").css('background-color','darkblue');
-    
-    
+
     var $selectedtr;
 
+    {% if goingPn.user == request.user %} 
+        $(".buts").hide();
+    {% elif goingPn %}   
+        $selectedtr = $("#currentRow");   
+        $("#answerBut, #loveBut").css('background-color','#724321');
+    {% else %}
+        $("#answerBut, #loveBut").hide();        
+    {% endif %}
+    
     $('tr').click(function(){
     
-           $('#answerBut').css('background-color','black');
+           
            $('tr').css('background-color','');
            $('tr').css('color','black');
            $(this).css('background-color','black');
@@ -156,8 +160,13 @@ Il y a {{allWaitingCount}} demande(s) de prise de parole
 
            
            if ($user == '{{user.username}}' || $status == 'Prochaine' ) {
-                $('#answerBut').css('background-color','darkblue');
+                <!-- $('#answerBut').css('background-color','darkblue'); -->
+                $('#answerBut').hide();
+           } else {
+                $('#answerBut').show();
+                $('#answerBut').css('background-color','black');
            };
+           
            
     })
     
@@ -206,7 +215,8 @@ Il y a {{allWaitingCount}} demande(s) de prise de parole
     
         $.post('/newHandler/',
             {
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'iddebate' : {{iddebate}}
             }, 
             function(data) {
                 location.reload();
@@ -217,7 +227,8 @@ Il y a {{allWaitingCount}} demande(s) de prise de parole
     $('#greenButton').click(function(){
         $.post('/nextHandler/',
             {
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'iddebate': {{iddebate}}
             }, 
             function(data) {
                 location.reload();

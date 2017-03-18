@@ -1,3 +1,11 @@
+:root {
+  --color1: #945927;
+  --color2: #EFE3CC;
+  --color3: #724321;
+  --color4: brown;
+  --color5: brown;
+}
+
 body{
     padding-bottom:100px;
 }
@@ -21,12 +29,16 @@ body{
     display:block;
 }
 
+#greenButton:active{
+    opacity:0.4 !important;
+}
+
 #buttonsFooter{
     position:fixed;
     bottom:0px;
     left:0px;
     width:100%;
-    height:100px;
+    height:20%;
     background-color:grey;
 }
 
@@ -35,7 +47,11 @@ body{
     height:99%;
     bottom:0px;
     width:33%;
-    background-color:black;  
+    background-color:var(--color3);  
+}
+
+.buts:active{
+    opacity:0.4 !important;
 }
 
 #answerBut{
@@ -70,15 +86,33 @@ body{
 }
 
 #goingMessage{
-    color:rgb(122,201,67);
+    position: absolute;
+    color:var(--color2);
     font-size:30px;
     text-align:center;
-    margin: 10px 0px 10px 0px
+    top:10%;
+    width:70%;
+    left:15%;
 }
 
 #stats{
-    float:right;
+    position:absolute;
     height:50px;
+    top : 10px;
+    right:10px;
+}
+
+#waitingCount{
+    position:absolute;
+    height:50px;
+    bottom :0px;
+    right:10px;
+    color:var(--color2);
+    font-size:20px
+}
+
+#stats:active{
+    opacity:0.4 !important;
 }
 
 #sound{
@@ -87,4 +121,39 @@ body{
     width:50px;
     margin-left: auto;
     margin-right: auto;
+}
+
+#topzone{
+    position:fixed;
+    background-color:var(--color3);
+    width:100%;
+    height:40%;
+    top:0px;
+    overflow-y:auto;
+}
+
+#tablezone{
+    position:fixed;
+    background-color:var(--color2);
+    width:100%;
+    height:40%;
+    top:40%;
+    left:0px;
+    overflow-y:auto;
+}
+
+#currentRow * {
+    font-weight:bold !important;
+}
+
+.debatesTitle{
+    font-weight:bold;
+    margin:10px 0 10px 0;
+}
+
+.debateRow{
+    padding:10px 0 10px 0;
+    margin:3px 0 3px 0;
+    background-color:var(--color2);
+    text-align:center;
 }

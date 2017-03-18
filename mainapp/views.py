@@ -28,17 +28,18 @@ from mainapp.signals import *
 
 
 @login_required
-def index(request):
+def index(request, iddebate):
     
-    waitingPns = Participation.objects.filter(status='0').filter(user = request.user)
+    debate = Debate.objects.get(pk = iddebate)
+    waitingPns = Participation.objects.filter(status='0').filter(user = request.user).filter(debate = debate)
 
     try:
-        nextPn = Participation.objects.get(status='next')
+        nextPn = Participation.objects.get(status='next', debate=debate)
     except:
         nextPn = None
         
     try:    
-        goingPn = Participation.objects.get(status='1')
+        goingPn = Participation.objects.get(status='1', debate=debate)
         wtPn = waitingPns.filter(linkedToPn = goingPn)
         if wtPn.count() > 0:
             goingPn.wtPnType = True
@@ -48,13 +49,13 @@ def index(request):
         goingPn = None  
 
     try:    
-        newPn = Participation.objects.get(user = request.user, status ='0', linkedToPn=None)
+        newPn = Participation.objects.get(user = request.user, status ='0', linkedToPn=None, debate=debate)
     except:
         newPn = None     
         
-    oldPns = Participation.objects.filter(status='2').order_by('-endTime')   
+    oldPns = Participation.objects.filter(status='2').filter(debate=debate).order_by('-endTime')
 
-    allWaitingCount = Participation.objects.filter(status='0').count()
+    allWaitingCount = Participation.objects.filter(status='0').filter(debate=debate).count()
     
     for pn in oldPns:
         
@@ -77,6 +78,7 @@ def index(request):
     
     
     return render(request,'mainapp/index.html',{
+                            'iddebate':iddebate,
                             'newPn':newPn,
                             'allWaitingCount':allWaitingCount,
                             'users':users,
@@ -85,10 +87,12 @@ def index(request):
                             'oldPns':oldPns,
                             'waitingPns':waitingPns})
 
-def statistics(request):
+def statistics(request, iddebate):
     
-    oldPns = Participation.objects.filter(status='2').order_by('-endTime') 
-    users = User.objects.all()       
+    debate = Debate.objects.get(pk = iddebate)
+    oldPns = Participation.objects.filter(status='2').filter(debate = debate).order_by('-endTime') 
+    # users = User.objects.all()       
+    users = debate.participants.all()
     totalTime = datetime.now() - datetime.now()       
     for user in users:
         oldies = oldPns.filter(user = user)
@@ -111,6 +115,7 @@ def statistics(request):
     
     
     return render(request,'mainapp/statistics.html',{
+                            'iddebate':iddebate,
                             'users':users,
                             'totalTime':totalTime,
                             'seconds':seconds,
@@ -145,7 +150,7 @@ def butHandler(request):
                 obj.linkType = request.POST['type']
                 obj.save()
                 
-        nextUpdate()
+        nextUpdate(pn.debate)
                    
         return HttpResponse('Ok')
         
@@ -154,28 +159,31 @@ def butHandler(request):
 def newHandler(request):
     if request.method == "POST":
     
+        debate = Debate.objects.get(pk = request.POST['iddebate'])
+    
         try:    
-            newPn = Participation.objects.get(user = request.user, status ='0', linkedToPn=None)
+            newPn = Participation.objects.get(user = request.user, debate = debate, status ='0', linkedToPn=None)
             newPn.delete()
         except:
             newPn = Participation(           
-                debate = Debate.objects.all()[0],
+                debate = debate,
                 user = request.user,
                 creationTime = datetime.now(),
                 status = 0 
             )   
             newPn.save()
 
-        nextUpdate()    
+        nextUpdate(debate)    
             
         return HttpResponse('Ok')
 
             
     return redirect('/')
 
-def nextCalculation():
-    oldPns = Participation.objects.filter(status='2')   
-    waitingPns = Participation.objects.filter(status='0')
+def nextCalculation(debate):
+
+    oldPns = Participation.objects.filter(status='2').filter(debate=debate)   
+    waitingPns = Participation.objects.filter(status='0').filter(debate=debate)  
     
     if waitingPns.count() == 0:
         return None
@@ -184,7 +192,7 @@ def nextCalculation():
     elif waitingPns.count() > 0:
         
         ##Calculons pour chaque utilisateur le temps utilisé (plus l'utilisateur a parlé, moins il aura de points)
-        users = User.objects.all()       
+        users = debate.participants.all()       
         totalTime = datetime.now() - datetime.now()       
         for user in users:
             oldies = oldPns.filter(user = user)
@@ -251,16 +259,15 @@ def nextCalculation():
         maxWtpn.save()
              
         return maxWtpn    
-
         
-def nextUpdate():
+def nextUpdate(debate):
         
-    goingPn = Participation.objects.filter(status='1')   
-    currentNextPn = Participation.objects.filter(status='next')   
+    goingPn = Participation.objects.filter(status='1').filter(debate=debate)   
+    currentNextPn = Participation.objects.filter(status='next').filter(debate=debate)     
     
     ##S'il y a ni going, ni next
     if goingPn.count() == 0 and currentNextPn.count() == 0:
-        newNextPn = nextCalculation()
+        newNextPn = nextCalculation(debate)
         if newNextPn:
             ##S'il y a une participation de dispo, on la met en going
             newNextPn.status = '1'
@@ -268,13 +275,13 @@ def nextUpdate():
             newNextPn.save()
             ##... on reload les screens, et on lance l'enregistrement
             beginSignal.send(None)
-            my_signal.send(None)
+        my_signal.send(None)
             
 
     
     ##S'il y a un going mais pas de next   
     elif goingPn.count()>0 and currentNextPn.count() == 0:
-        newNextPn = nextCalculation()
+        newNextPn = nextCalculation(debate)
         if newNextPn:
             ##S'il y a une participation de dispo, on la met en next
             newNextPn.status = 'next'
@@ -295,15 +302,14 @@ def nextUpdate():
         my_signal.send(None)
         
         ##Et on relance nextUpdate()
-        nextUpdate()
-        
-
-        
+        nextUpdate(debate)
+              
     ##S'il n'y a un going et un next, on ne fait rien...
                                  
 def nextHandler(request):
 
-    goingPn = Participation.objects.get(status='1')
+    debate = Debate.objects.get(pk = request.POST['iddebate'])
+    goingPn = Participation.objects.get(status='1', debate=debate)
     if request.user == goingPn.user:       
         ##Current devient old    
         goingPn.status = 2
@@ -313,7 +319,7 @@ def nextHandler(request):
         stopSignal.send(None)
         
         ##Maintenant, on lance l'update
-        nextUpdate()
+        nextUpdate(debate)
         
     return redirect('/')
     
@@ -326,6 +332,33 @@ def soundFileHandler(request):
     
 def sounder(request):
 
+    return render(request,'mainapp/sounder.html',{})
+    
+def generateCueFile(iddebate):
+    pns = Participation.objects.filter(debate__pk = iddebate).order_by('startTime')
+    
+    file = open("CueFile_"+str(iddebate)+".txt","w") 
+    file.write('FILE "debatmachine.MP3" MP3\n')
     
 
-    return render(request,'mainapp/sounder.html',{})
+    
+    i=1
+    for pn in pns:  
+
+        timedelta = pn.startTime - pns[0].startTime
+        seconds = timedelta.total_seconds()
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        seconds = seconds % 60
+    
+        file.write("  TRACK "+'%02d' % i+" AUDIO\n")
+        file.write('    TITLE "Default"\n')
+        file.write('    PERFORMER "'+pn.user.username+'"\n')
+        file.write('    INDEX 01 '+'%02d' % minutes+':'+'%02d' % seconds+':00\n')
+        i=i+1
+    file.close()
+    
+def debatesList(request):
+    debates = Debate.objects.filter(participants__id=request.user.id)
+    # debates = Debate.objects.all()
+    return render(request,'mainapp/debatesList.html',{'debates':debates})

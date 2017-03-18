@@ -1,0 +1,25 @@
+{% extends 'mainapp/base.html' %}
+{% block title %}Test{% endblock %}
+{% block content %}
+{% load staticfiles %}
+
+<div class = "row">
+    <div class="col-xs-12">
+      <div class = "debatesTitle">
+            Bonjour {{user.username}}. Vos débats :
+      </div>
+    </div>
+</div>
+
+<div class = "row">
+    <div class="col-xs-12">
+        {% for debate in debates%}
+            <div class = "debateRow">
+                <a href="{% url 'index' debate.pk %}">{{debate.theme}}</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+{% endblock %}
