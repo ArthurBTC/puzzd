@@ -1,0 +1,119 @@
+{% extends 'mainapp/base.html' %}
+{% block title %}Test{% endblock %}
+{% block content %}
+{% load staticfiles %}
+
+<div class = "row">
+    <div>
+        Retour sur le débat "{{debate.theme}}"
+    </div>
+</div>
+
+<div class = "row">
+    <div id="totalTime" class="col-xs-6">
+    Temps total : {{minutes|floatformat:"0"}}:{{seconds|stringformat:"02d"}}
+    </div>
+</div>
+
+
+<audio id="audioPlayer" src=""></audio>
+
+{% for pn0 in pns %}
+    {% if not pn0.linkedToPn %}
+    <div class = "row">
+        {{pn0.user.username}} ({{pn0.minutes|floatformat:"0"}}:{{pn0.seconds|stringformat:"02d"}}) - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn0.soundFile}}" />
+    </div>   
+    {% for pn1 in pns %}
+        {% if pn1.linkedToPn == pn0 %}
+        <div class = "row">
+            --- {{pn1.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn1.soundFile}}" />
+        </div> 
+        {% for pn2 in pns %}
+            {% if pn2.linkedToPn == pn1 %}
+            <div class = "row">
+                --- --- {{pn2.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn2.soundFile}}" />
+            </div>             
+            {% for pn3 in pns %}
+                {% if pn3.linkedToPn == pn2 %}
+                <div class = "row">
+                    --- --- --- {{pn3.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn3.soundFile}}" />
+                </div>                 
+                {% for pn4 in pns %}
+                    {% if pn4.linkedToPn == pn3 %}
+                    <div class = "row">
+                        --- --- --- --- {{pn4.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn4.soundFile}}" />
+                    </div> 
+                    {% for pn5 in pns %}
+                        {% if pn5.linkedToPn == pn4 %}
+                        <div class = "row">
+                            --- --- --- --- --- {{pn5.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn5.soundFile}}" />
+                        </div>                                                                   
+                        {% for pn6 in pns %}
+                            {% if pn6.linkedToPn == pn5 %}
+                            <div class = "row">
+                                --- --- --- --- --- --- {{pn6.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn6.soundFile}}" />
+                            </div>                                                                  
+                            {% endif %}                   
+                        {% endfor %} 
+                        {% endif %}  
+                    {% endfor %}                    
+                    {% endif %}        
+                {% endfor %}
+                {% endif %}        
+            {% endfor %}             
+            {% endif %}        
+        {% endfor %}        
+        {% endif %}        
+    {% endfor %}    
+    {% endif %}   
+{% endfor %}
+
+
+
+<div class = "row">
+    <div id="totalTime" class="col-xs-12">
+        <div id="chart_div" style="width: 100%;"></div>
+    </div>
+</div>
+
+<script>
+
+    var player = document.querySelector('#audioPlayer');
+
+    $('.soundLogo').click(function(event){
+        $("#audioPlayer").attr("src", $(this).attr('id'));
+        player.play();
+    });
+</script>
+
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+  google.charts.load('current', {'packages':['corechart', 'bar']});
+  google.charts.setOnLoadCallback(drawVisualization);
+
+
+  function drawVisualization() {
+    // Some raw data (not necessarily accurate)
+    var data = google.visualization.arrayToDataTable([
+     ['Participant', 'Temps', 'Moyenne'],
+     
+     {% for user in users %}
+        ['{{user.username}}',  {{user.timePC}}*100,    {{theoricTimePC}}*100],
+     {% endfor %}
+
+  ]);
+
+var options = {
+  chartArea: {width: '70%'},
+  hAxis: {title: '% Temps de parole'},
+  seriesType: 'bars',
+  series: {1: {type: 'line'}}
+};
+
+var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+chart.draw(data, options);
+}
+</script>
+
+{% endblock %}

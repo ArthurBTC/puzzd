@@ -86,34 +86,57 @@ def index(request, iddebate):
                             'goingPn':goingPn,
                             'oldPns':oldPns,
                             'waitingPns':waitingPns})
+                            
+def reports(request, iddebate):
+    
+    debate = Debate.objects.get(pk = iddebate)
+    pns = Participation.objects.filter(debate = debate).order_by('startTime')
 
+    for pn in pns:        
+        ##Calcul du temps écoulé
+        pn.timeDiff = pn.endTime - pn.startTime        
+        seconds = pn.timeDiff.total_seconds() 
+        minutes = (seconds) // 60
+        seconds = seconds - minutes * 60
+        pn.seconds = seconds    
+        pn.minutes = minutes 
+    
+    users = debate.participants.all()
+    
+    users, totalTime = usersTimeCalculator(users, pns)
+    seconds = totalTime.total_seconds() 
+    minutes = (seconds) // 60
+    seconds = seconds - minutes * 60
+
+    theoricTimePC = 1 / users.count() 
+    
+    return render(request,'mainapp/reports.html',{
+                            'iddebate':iddebate,
+                            'debate':debate,
+                            'users':users,
+                            'totalTime':totalTime,
+                            'seconds':seconds,
+                            'minutes':minutes,
+                            'theoricTimePC':theoricTimePC,                            
+                            'pns':pns})   
+    
+    
+@login_required                            
 def statistics(request, iddebate):
     
     debate = Debate.objects.get(pk = iddebate)
-    oldPns = Participation.objects.filter(status='2').filter(debate = debate).order_by('-endTime') 
-    # users = User.objects.all()       
+    oldPns = Participation.objects.filter(status='2').filter(debate = debate).order_by('-endTime')      
     users = debate.participants.all()
-    totalTime = datetime.now() - datetime.now()       
-    for user in users:
-        oldies = oldPns.filter(user = user)
-        time = datetime.now() - datetime.now()
-        for oldie in oldies:
-            time = time + oldie.endTime - oldie.startTime
-        user.time = time
-        totalTime = totalTime + time
     
+    users, totalTime = usersTimeCalculator(users, oldPns)
     
     seconds = totalTime.total_seconds() 
     minutes = (seconds) // 60
     seconds = seconds - minutes * 60
 
-    
     theoricTimePC = 1 / users.count()       
 
-    for user in users:
-        user.timePC = user.time / totalTime
-    
-    
+      
     return render(request,'mainapp/statistics.html',{
                             'iddebate':iddebate,
                             'users':users,
@@ -122,7 +145,23 @@ def statistics(request, iddebate):
                             'minutes':minutes,
                             'theoricTimePC':theoricTimePC,
                             'oldPns':oldPns})      
- 
+
+#Calculer le temps pour un ensemble d'utilisateurs sur un ensemble de participations                            
+def usersTimeCalculator(users, pns):
+    totalTime = datetime.now() - datetime.now()
+    for user in users:
+        pnsUser = pns.filter(user = user)
+        time = datetime.now() - datetime.now()
+        for pnUser in pnsUser:
+            time = time + pnUser.endTime - pnUser.startTime
+        user.time = time
+        totalTime = totalTime + time
+        
+    for user in users:
+        user.timePC = user.time / totalTime        
+        
+    return users, totalTime    
+                            
 def test(request):
     return render(request,'mainapp/test.html',{})
     
@@ -368,9 +407,10 @@ def audioPaths(iddebate):
     pns = Participation.objects.filter(debate = debate).order_by('startTime')
     i = 1
     for pn in pns:
-        pn.soundFile = "debateSounds/"+str(iddebate)+"/wala ("+str(i)+").mp3"
+        pn.soundFile = "debateSounds/"+str(iddebate)+"/"+'%02d' % i+".mp3"
         pn.save()
         i=i+1
+                
     
     
     

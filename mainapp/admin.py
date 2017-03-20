@@ -5,7 +5,7 @@ class DebateAdmin(admin.ModelAdmin):
     list_display = ('theme','place','creationTime')
     
 class ParticipationAdmin(admin.ModelAdmin):
-    list_display = ('id','debate','user','creationTime','endTime','status','soundFile','text')    
+    list_display = ('id','debate','user','creationTime','startTime','endTime','status','soundFile','text')    
 
 class LinkAdmin(admin.ModelAdmin):
     list_display = ('debate','user','leftParticipation','rightParticipation','creationTime')
