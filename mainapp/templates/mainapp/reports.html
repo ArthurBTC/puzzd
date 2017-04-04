@@ -3,71 +3,61 @@
 {% block content %}
 {% load staticfiles %}
 
-<div class = "row">
-    <div>
-        Retour sur le débat "{{debate.theme}}"
+<audio controls id="audioPlayer"><source></audio>
+
+<div id="filtersContainer" class = "row">
+    <div id="totalTime" class="col-xs-12">
+        <div>
+            Retour sur le débat "{{debate.theme}}" - Temps total : {{minutes|floatformat:"0"}}:{{seconds|stringformat:"02d"}}
+        </div>
+        <div>
+            <!-- <audio controls id="audioPlayer" src=""></audio> -->
+            
+        </div>
+        
     </div>
 </div>
 
-<div class = "row">
-    <div id="totalTime" class="col-xs-6">
-    Temps total : {{minutes|floatformat:"0"}}:{{seconds|stringformat:"02d"}}
-    </div>
-</div>
-
-
-<audio id="audioPlayer" src=""></audio>
-
-{% for pn0 in pns %}
-    {% if not pn0.linkedToPn %}
-    <div class = "row">
-        {{pn0.user.username}} ({{pn0.minutes|floatformat:"0"}}:{{pn0.seconds|stringformat:"02d"}}) - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn0.soundFile}}" />
-    </div>   
-    {% for pn1 in pns %}
-        {% if pn1.linkedToPn == pn0 %}
+<div id="" class = "row">
+    <div class="col-xs-6">
         <div class = "row">
-            --- {{pn1.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn1.soundFile}}" />
-        </div> 
-        {% for pn2 in pns %}
-            {% if pn2.linkedToPn == pn1 %}
-            <div class = "row">
-                --- --- {{pn2.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn2.soundFile}}" />
-            </div>             
-            {% for pn3 in pns %}
-                {% if pn3.linkedToPn == pn2 %}
-                <div class = "row">
-                    --- --- --- {{pn3.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn3.soundFile}}" />
-                </div>                 
-                {% for pn4 in pns %}
-                    {% if pn4.linkedToPn == pn3 %}
-                    <div class = "row">
-                        --- --- --- --- {{pn4.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn4.soundFile}}" />
-                    </div> 
-                    {% for pn5 in pns %}
-                        {% if pn5.linkedToPn == pn4 %}
-                        <div class = "row">
-                            --- --- --- --- --- {{pn5.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn5.soundFile}}" />
-                        </div>                                                                   
-                        {% for pn6 in pns %}
-                            {% if pn6.linkedToPn == pn5 %}
-                            <div class = "row">
-                                --- --- --- --- --- --- {{pn6.user.username}} - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn6.soundFile}}" />
-                            </div>                                                                  
-                            {% endif %}                   
-                        {% endfor %} 
-                        {% endif %}  
-                    {% endfor %}                    
-                    {% endif %}        
-                {% endfor %}
-                {% endif %}        
-            {% endfor %}             
-            {% endif %}        
-        {% endfor %}        
-        {% endif %}        
-    {% endfor %}    
-    {% endif %}   
-{% endfor %}
-
+            <div class="col-xs-12">
+                Les participations :
+            </div>
+        </div>
+    
+      {% for pn in pns %}
+        <div id="{{pn.id}}" linkedToPn="{{pn.linkedToPn.id}}" class = "row pnrow">           
+           <div class="col-xs-12">
+            {{forloop.counter}}. {{pn.user.username}} ({{pn.minutes|floatformat:"0"}}:{{pn.seconds|stringformat:"02d"}}) - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn.soundFile}}" />
+           </div>         
+        </div>        
+      {% endfor %}
+    </div>
+    
+    <div class="col-xs-6">
+        <div class = "row">
+            <div class="col-xs-12">
+                Réponse à :
+            </div>
+        </div>
+        <div id="answersTo" class = "row">
+        </div>
+        
+        <div class = "row">
+            <div class="col-xs-12">
+                Est répondu par :
+            </div>
+        </div>        
+        
+        <div id="answeredBy" class = "row">
+           
+        </div>        
+        
+    
+    </div>    
+    
+</div>
 
 
 <div class = "row">
@@ -80,10 +70,36 @@
 
     var player = document.querySelector('#audioPlayer');
 
-    $('.soundLogo').click(function(event){
+    $(document).on('click','.soundLogo',function(event){
         $("#audioPlayer").attr("src", $(this).attr('id'));
         player.play();
     });
+    
+    $('.pnrow').click(function(event){
+        console.log($(this).attr('id'));
+        console.log($(this).attr('linkedToPn'));
+        
+        //Colors
+        $('.pnrow').css('background-color','');
+        $(this).css('background-color','red');
+              
+        //AnswersTo           
+        $("#answersTo").html("");
+        $("#"+$(this).attr('linkedToPn') ).css('background-color','orange');
+        $("#answersTo").html( $("#"+$(this).attr('linkedToPn') ).html() ) ;
+        
+        //AnsweredBy
+        $("#answeredBy").html("");       
+        $id = $(this).attr('id');
+        $('.pnrow').filter(function( index ) {
+            return $(this).attr('linkedToPn') === $id
+        }).each(function () {
+            $("#answeredBy").append($(this).html());
+            $(this).css('background-color','yellow');
+        });       
+        
+    });    
+    
 </script>
 
 

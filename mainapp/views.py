@@ -90,7 +90,7 @@ def index(request, iddebate):
 def reports(request, iddebate):
     
     debate = Debate.objects.get(pk = iddebate)
-    pns = Participation.objects.filter(debate = debate).order_by('startTime')
+    pns = Participation.objects.filter(debate = debate).order_by('-startTime')
 
     for pn in pns:        
         ##Calcul du temps écoulé

@@ -162,3 +162,25 @@ body{
     height:15px;
     width:15px;
 }
+
+#answersTo{
+    background-color:orange;
+}
+
+#answeredBy{
+    background-color:yellow;
+}
+
+#audioPlayer{
+    position:fixed;
+    bottom:0px;
+    left:0px;
+}
+
+#filtersContainer{
+    margin:10px 0px 10px 0px;
+}
+
+.pnrow{
+    cursor: pointer;
+}
