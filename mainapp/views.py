@@ -481,6 +481,7 @@ def generateCueFile(iddebate):
         i=i+1
     file.close()
     
+@login_required    
 def debatesList(request):
     debates = Debate.objects.filter(participants__id=request.user.id)
     # debates = Debate.objects.all()
