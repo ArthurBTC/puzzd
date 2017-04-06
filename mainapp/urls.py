@@ -12,12 +12,18 @@ urlpatterns = [
     url(r'^debat/(?P<iddebate>[0-9]+)', views.index, name='index'),  
     url(r'^statistics/(?P<iddebate>[0-9]+)', views.statistics, name='statistics'),
     url(r'^reports/(?P<iddebate>[0-9]+)', views.reports, name='reports'),
+    url(r'^admindebate/(?P<iddebate>[0-9]+)', views.admindebate, name='admindebate'),
     
     url(r'^butHandler/', views.butHandler, name='butHandler'),
+    url(r'^loveHandler/', views.loveHandler, name='loveHandler'),
+    
+    
     url(r'^newHandler/', views.newHandler, name='newHandler'),
     url(r'^nextHandler/', views.nextHandler, name='nextHandler'),  
     url(r'^sounder/', views.sounder, name='sounder'),  
     url(r'^soundFileHandler/', views.soundFileHandler, name='soundFileHandler'),
+    
+    url(r'^startdebate/(?P<iddebate>[0-9]+)', views.startdebate, name='startdebate'),
     
     url(r'^test/', views.test, name='test'),
      

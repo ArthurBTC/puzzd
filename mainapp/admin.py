@@ -14,7 +14,7 @@ class RequestAdmin(admin.ModelAdmin):
     list_display = ('debate','participation','user','type','status','creationTime','endTime')
 
 class AppreciationAdmin(admin.ModelAdmin):
-    list_display = ('debate','participation','user','type','creationTime') 
+    list_display = ('participation','user','type','creationTime') 
     
 # Register your models here.
 admin.site.register(Debate, DebateAdmin)

@@ -70,6 +70,7 @@
         <td class="username">{{nextPn.user.username}}</td>
         <td class="duration" >Prochaine</td>
         <td class="waiting"></td>
+        <td class="loving"></td>
         <td class="audio" hidden></td>
     </tr>
     
@@ -82,6 +83,7 @@
         <td class="username">{{goingPn.user.username}}</td>
         <td class="duration">En cours</td>
         <td class="waiting">{% if goingPn.wtPnType %}<img class="smallAnswer" src="{% static 'mainapp/png/smallAnswerGrey.png' %}">{%endif%}</td>
+        <td class="loving">{% if goingPn.apcMark %}<img class="smallAnswer" src="{% static 'mainapp/png/hearthGrey.png' %}">{%endif%}</td>
         <td class="audio" hidden></td>
     </tr>
     
@@ -93,6 +95,7 @@
         <td class="username">{{pn.user.username}}</td>
         <td class="duration">{{pn.minutes|floatformat:"0"}}:{{pn.seconds|stringformat:"02d"}}</td>
         <td class="waiting">{% if pn.wtPnType %}<img class="smallAnswer" src="{% static 'mainapp/png/smallAnswerGrey.png' %}">{%endif%}</td>
+        <td class="loving">{% if pn.apcMark %}<img class="smallAnswer" src="{% static 'mainapp/png/hearthGrey.png' %}">{%endif%}</td>
         <td class="audio" hidden>{{pn.soundFile}}</td>
     </tr>    
     {% endfor %}
@@ -120,8 +123,6 @@
 
 </div>
 
-
-
 <script>
 
     {% if newPn %}
@@ -140,36 +141,61 @@
         $("#answerBut, #loveBut").hide();        
     {% endif %}
     
+    
+    try {
+           $waiting = $selectedtr.find(".waiting").eq(0).html();
+            if ($waiting != null && $waiting != '' ){
+                $('#answerBut').css('background-color','grey');
+            }     
+            $loving = $selectedtr.find(".loving").eq(0).html();
+            if ($loving != null && $loving != '' ){
+                $('#loveBut').css('background-color','grey');
+            } 
+    }
+    catch (e) {
+        console.log('whatever')
+    }
+    
+     
+    
+    //Quand on clique sur une ligne
     $('tr').click(function(){
     
-           
-           $('tr').css('background-color','');
-           $('tr').css('color','black');
-           $(this).css('background-color','black');
-           $(this).css('color','white');
-           $selectedtr = $(this);
-           
-           $waiting = $(this).find(".waiting").eq(0).html();
+    
+       //Selection de la ligne et coloration des lignes
+       $('tr').css('background-color','');
+       $('tr').css('color','black');
+       $(this).css('background-color','black');
+       $(this).css('color','white');
+       $selectedtr = $(this);
 
-           if ($waiting != null && $waiting != '' ){
-                $('#answerBut').css('background-color','grey');
-           } 
-           
-           $user = $(this).find(".username").eq(0).text();
-           $status = $(this).find('.duration').eq(0).text();
 
-           
-           if ($user == '{{user.username}}' || $status == 'Prochaine' ) {
-                <!-- $('#answerBut').css('background-color','darkblue'); -->
-                $('#answerBut').hide();
-           } else {
-                $('#answerBut').show();
-                $('#answerBut').css('background-color','black');
-           };
-           
+       //Si la participation sélectionnée appartient à l'user, ou si c'est 'prochaine', on cache certains boutons
+       $user = $(this).find(".username").eq(0).text();
+       $status = $(this).find('.duration').eq(0).text();
+   
+       if ($user == '{{user.username}}' || $status == 'Prochaine' ) {
+            $('#answerBut, #loveBut').hide();
+       } else {
+            $('#answerBut, #loveBut').show();
+            $('#answerBut, #loveBut').css('background-color','black');
+       };
+
+       //Si une waiting (demande de réponse) est deja faite, alors on grise le bouton answer
+       $waiting = $(this).find(".waiting").eq(0).html();
+       if ($waiting != null && $waiting != '' ){
+            $('#answerBut').css('background-color','grey');
+       } 
+
+       //Si un love est deja fait, alors on grise le bouton love
+       $loving = $(this).find(".loving").eq(0).html();
+       if ($loving != null && $loving != '' ){
+            $('#loveBut').css('background-color','grey');
+       }         
            
     })
-    
+      
+    //Quand on clique sur le bouton réponse
     $('#answerBut').click(function(){
         if($selectedtr){
     
@@ -192,25 +218,29 @@
         }
     })    
 
-
-/*    $('#secondBut').click(function(){
+    //Quand on clique sur le love
+    $('#loveBut').click(function(){
+        if($selectedtr){
+            $id = $selectedtr.find('.pnId').eq(0).attr('id');
+            $user = $selectedtr.find(".username").eq(0).text();
+            $status = $selectedtr.find('.duration').eq(0).text();
+            
+            if ($user != '{{user.username}}' && $status != 'Prochaine') { 
+            
+                $.post('/loveHandler/',
+                    {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id': $id,
+                        'type': '1'
+                    }, 
+                    function(data) {
+                        location.reload();
+                    }); 
+            }
+        }
+    })   
     
-        $id = $selectedtr.find('.pnId').eq(0).text();
-        $user = $selectedtr.find(".username").eq(0).text();
-        
-        if ($user != '{{user.username}}') {         
-            $.post('/butHandler/',
-                {
-                    'csrfmiddlewaretoken': '{{ csrf_token }}',
-                    'id': $id,
-                    'type': '1'
-                }, 
-                function(data) {
-                    location.reload();
-                }); 
-        }   
-    })   */
-    
+    //Quand on clique sur nouvelle pn
     $('#newBut').click(function(){
     
         $.post('/newHandler/',
@@ -224,6 +254,7 @@
     
     })  
 
+    //Quand on clique sur le gros bouton vert
     $('#greenButton').click(function(){
         $.post('/nextHandler/',
             {
@@ -236,6 +267,7 @@
         
     });
     
+    //Not used
     $('#sound').click(function(){
         $audioPlayer = document.getElementById("audioPlayer");
         

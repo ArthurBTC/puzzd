@@ -29,7 +29,7 @@
       {% for pn in pns %}
         <div id="{{pn.id}}" linkedToPn="{{pn.linkedToPn.id}}" class = "row pnrow">           
            <div class="col-xs-12">
-            {{forloop.counter}}. {{pn.user.username}} ({{pn.minutes|floatformat:"0"}}:{{pn.seconds|stringformat:"02d"}}) - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn.soundFile}}" />
+            {{forloop.counter}}. {{pn.user.username}} ({{pn.minutes|floatformat:"0"}}:{{pn.seconds|stringformat:"02d"}}) ({{pn.likes}} likes) - <img class="soundLogo" src="{% static 'mainapp/png/sound.png' %}" id="/media/{{pn.soundFile}}" />
            </div>         
         </div>        
       {% endfor %}

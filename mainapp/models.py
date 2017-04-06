@@ -94,7 +94,6 @@ class Appreciation(models.Model):
         ('dislike','Dislike'),
     ) 
     
-    debate = models.ForeignKey(Debate)
     participation = models.ForeignKey(Participation)
     user = models.ForeignKey(User)
     type = models.CharField(max_length = 30, choices = TYPE_CHOICE, default = 'like')     

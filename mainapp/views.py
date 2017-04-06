@@ -26,7 +26,7 @@ import django.dispatch
 from mainapp.signals import *
 
 
-
+#Vue utilisateur pendant le débat
 @login_required
 def index(request, iddebate):
     
@@ -41,10 +41,26 @@ def index(request, iddebate):
     try:    
         goingPn = Participation.objects.get(status='1', debate=debate)
         wtPn = waitingPns.filter(linkedToPn = goingPn)
-        if wtPn.count() > 0:
+        ##Test si la prochaine n'est pas une réponse
+        try:
+            if nextPn.linkedToPn == goingPn and nextPn.user == request.user:
+                aaa = 1
+            else:
+                aaa = 0
+        except:
+            aaa = 0
+            
+        if wtPn.count() + aaa > 0:
             goingPn.wtPnType = True
         else:
-            goingPn.wtPnType = False        
+            goingPn.wtPnType = False 
+
+        apcs= Appreciation.objects.filter(participation = goingPn).filter(user = request.user)
+        if apcs.count() > 0:
+            goingPn.apcMark = True
+        else:
+            goingPn.apcMark = False         
+            
     except:
         goingPn = None  
 
@@ -68,12 +84,28 @@ def index(request, iddebate):
         pn.minutes = minutes    
             
         ##Marquage s'il y a des waitingPn reliées
+        
+        try:
+            if nextPn.linkedToPn == pn and nextPn.user == request.user:
+                aaa = 1
+            else:
+                aaa = 0
+        except:
+            aaa = 0        
+        
         wtPn = waitingPns.filter(linkedToPn = pn)
-        if wtPn.count() > 0:
+        if wtPn.count() + aaa > 0:
             pn.wtPnType = True
         else:
             pn.wtPnType = False
 
+        ##Marquage s'il y a du love
+        apcs= Appreciation.objects.filter(participation = pn).filter(user = request.user)
+        if apcs.count() > 0:
+            pn.apcMark = True
+        else:
+            pn.apcMark = False        
+            
     users = User.objects.all()
     
     
@@ -86,7 +118,8 @@ def index(request, iddebate):
                             'goingPn':goingPn,
                             'oldPns':oldPns,
                             'waitingPns':waitingPns})
-                            
+  
+#Vue utilisateurs après le débat  
 def reports(request, iddebate):
     
     debate = Debate.objects.get(pk = iddebate)
@@ -99,7 +132,11 @@ def reports(request, iddebate):
         minutes = (seconds) // 60
         seconds = seconds - minutes * 60
         pn.seconds = seconds    
-        pn.minutes = minutes 
+        pn.minutes = minutes
+
+        ##Calcul du nombre de like
+        apcs = Appreciation.objects.filter(participation = pn)
+        pn.likes = apcs.count()
     
     users = debate.participants.all()
     
@@ -119,8 +156,8 @@ def reports(request, iddebate):
                             'minutes':minutes,
                             'theoricTimePC':theoricTimePC,                            
                             'pns':pns})   
-    
-    
+     
+#Pendant le débat, pour voir les stats     
 @login_required                            
 def statistics(request, iddebate):
     
@@ -146,6 +183,14 @@ def statistics(request, iddebate):
                             'theoricTimePC':theoricTimePC,
                             'oldPns':oldPns})      
 
+#Pendant le débat, pour l'admin    
+@user_passes_test(lambda u: u.is_superuser)                         
+def admindebate(request, iddebate):
+    return render(request,'mainapp/admindebate.html',{
+                            'iddebate':iddebate
+                            })          
+    
+                            
 #Calculer le temps pour un ensemble d'utilisateurs sur un ensemble de participations                            
 def usersTimeCalculator(users, pns):
     totalTime = datetime.now() - datetime.now()
@@ -349,7 +394,7 @@ def nextHandler(request):
 
     debate = Debate.objects.get(pk = request.POST['iddebate'])
     goingPn = Participation.objects.get(status='1', debate=debate)
-    if request.user == goingPn.user:       
+    if request.user == goingPn.user or request.user.username == 'arthur44' or request.user.username == 'arthur':       
         ##Current devient old    
         goingPn.status = 2
         goingPn.endTime = datetime.now()
@@ -361,7 +406,46 @@ def nextHandler(request):
         nextUpdate(debate)
         
     return redirect('/')
+   
+
+##Gérer les demandes de love ou de hate
+@login_required
+def loveHandler(request):
+
+    # TYPE_CHOICE = (
+        # ('like','Like'),
+        # ('dislike','Dislike'),
+    # ) 
     
+    # participation = models.ForeignKey(Participation)
+    # user = models.ForeignKey(User)
+    # type = models.CharField(max_length = 30, choices = TYPE_CHOICE, default = 'like')     
+    
+    # creationTime = models.DateTimeField()  
+
+
+ 
+    if request.method == "POST":
+        pn = Participation.objects.get(pk = request.POST['id'])
+
+        obj, created = Appreciation.objects.get_or_create(
+            user = request.user,           
+            participation = pn,     
+            defaults = {
+                'type' : 'like',
+                'creationTime' : datetime.now()
+            }
+            
+        )
+        
+        if not created:
+            obj.delete()
+                   
+        return HttpResponse('Ok')        
+    
+    return redirect('/')
+    
+   
 def soundFileHandler(request):
     pn = Participation.objects.order_by('-endTime')[0]
     pn.soundFile = request.FILES['file']
@@ -410,7 +494,15 @@ def audioPaths(iddebate):
         pn.soundFile = "debateSounds/"+str(iddebate)+"/"+'%02d' % i+".mp3"
         pn.save()
         i=i+1
-                
+        
+#Pour démarrer le débat (supprime tout, définit le creationTime)        
+def startdebate(request, iddebate):
+    debate = Debate.objects.get(pk = iddebate)
+    Participation.objects.filter(debate=debate).delete()
+    debate.creationTime = datetime.now()
+    debate.save()
+    my_signal.send(None)
+    return HttpResponse('GOGOGO')
     
     
     
