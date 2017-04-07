@@ -458,7 +458,9 @@ def sounder(request):
     return render(request,'mainapp/sounder.html',{})
     
 def generateCueFile(iddebate):
-    pns = Participation.objects.filter(debate__pk = iddebate).order_by('startTime')
+
+    debate = Debate.objects.get(pk = iddebate)
+    pns = Participation.objects.filter(debate = debate).order_by('startTime')
     
     file = open("CueFile_"+str(iddebate)+".txt","w") 
     file.write('FILE "debatmachine.MP3" MP3\n')
@@ -466,7 +468,7 @@ def generateCueFile(iddebate):
     i=1
     for pn in pns:  
 
-        timedelta = pn.startTime - pns[0].startTime
+        timedelta = pn.startTime - debate.creationTime
         seconds = timedelta.total_seconds()
         # hours = seconds // 3600
         # minutes = (seconds % 3600) // 60
