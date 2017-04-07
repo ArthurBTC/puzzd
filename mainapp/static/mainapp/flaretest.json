@@ -1,0 +1,41 @@
+{
+ "name": "Premier débat test"
+,"children": [
+  {
+     "name": "arthur2(565)"
+  },
+  {
+     "name": "arthur2(566)"
+,"children": [
+  {
+     "name": "arthur(569)"
+  },
+  {}
+]  },
+  {
+     "name": "arthur2(567)"
+,"children": [
+  {
+     "name": "arthur(568)"
+  },
+  {
+     "name": "arthur(571)"
+  },
+  {
+     "name": "arthur(573)"
+  },
+  {}
+]  },
+  {
+     "name": "arthur2(570)"
+  },
+  {
+     "name": "arthur2(572)"
+,"children": [
+  {
+     "name": "arthur(579)"
+  },
+  {}
+]  },
+  {}
+] }

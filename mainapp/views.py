@@ -24,8 +24,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 import django.dispatch
 from mainapp.signals import *
-
-
+from django.core.files import File
+import codecs
 #Vue utilisateur pendant le débat
 @login_required
 def index(request, iddebate):
@@ -122,9 +122,14 @@ def index(request, iddebate):
 #Vue utilisateurs après le débat  
 def reports(request, iddebate):
     
+    
+    generateJsonFile(iddebate)
+    
     debate = Debate.objects.get(pk = iddebate)
     pns = Participation.objects.filter(debate = debate).order_by('startTime')
 
+    
+    
     for pn in pns:        
         ##Calcul du temps écoulé
         pn.timeDiff = pn.endTime - pn.startTime        
@@ -203,8 +208,11 @@ def usersTimeCalculator(users, pns):
         totalTime = totalTime + time
         
     for user in users:
-        user.timePC = user.time / totalTime        
-        
+        try:
+            user.timePC = user.time / totalTime        
+        except:
+            user.timePC = 1
+            
     return users, totalTime    
                             
 def test(request):
@@ -482,6 +490,61 @@ def generateCueFile(iddebate):
         file.write('    INDEX 01 '+str(int(minutes))+':'+'%02d' % seconds+':00\n')
         i=i+1
     file.close()
+
+    
+def writeChildren(file, pns, pn):
+
+    pnsX = pns.filter(linkedToPn=pn)
+    
+    if pnsX.count()>0:
+        file.write(',"children": [\n')
+        
+        for pnX in pnsX:
+        
+     
+      
+            file.write('  {\n')
+            try:
+                file.write(
+                    '"id":'+str(pnX.pk)+','
+                    +'"name": "'+pnX.user.username+'",'
+                    +'"sound":"'+pnX.soundFile.url+'"\n'
+                    )
+            except:
+                file.write(
+                    '"id":'+str(pnX.pk)+','
+                    +'"name": "'+pnX.user.username+'",'
+                    +'"sound":"None"\n'
+                    )
+            writeChildren(file, pns, pnX)
+            
+            if pnX == pnsX.reverse()[0]:
+                file.write('  }\n')
+            else:
+                file.write('  },\n')           
+            
+        file.write(']')
+       
+    
+def generateJsonFile(iddebate):
+    debate = Debate.objects.get(pk = iddebate)
+    pns = Participation.objects.filter(debate = debate).order_by('startTime')
+    file = codecs.open("JsonFile_"+str(iddebate)+".txt","w", "utf-8")
+    
+    file.write('{\n')
+    file.write(' "name": ""\n')
+    
+    writeChildren(file, pns, None)
+
+    file.write(' }\n') 
+    file.close()
+    
+    f = open("JsonFile_"+str(iddebate)+".txt")
+    
+    debate.jsonFile = File(f)
+    debate.save()
+    
+    
     
 @login_required    
 def debatesList(request):

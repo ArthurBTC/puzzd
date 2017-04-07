@@ -9,6 +9,8 @@ class Debate(models.Model):
     place = models.CharField(max_length = 300, default = 'default' ,blank=True, null=True)
     participants = models.ManyToManyField(User, blank=True)
     creationTime = models.DateTimeField()
+    
+    jsonFile = models.FileField(upload_to='jsonFile', blank=True, null=True)
 
 class Participation(models.Model):
 

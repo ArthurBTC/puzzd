@@ -1,1 +1,41 @@
 FILE "debatmachine.MP3" MP3
+  TRACK 01 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur2"
+    INDEX 01 0:25:00
+  TRACK 02 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur2"
+    INDEX 01 0:27:00
+  TRACK 03 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur2"
+    INDEX 01 0:32:00
+  TRACK 04 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur"
+    INDEX 01 0:38:00
+  TRACK 05 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur"
+    INDEX 01 0:43:00
+  TRACK 06 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur2"
+    INDEX 01 0:53:00
+  TRACK 07 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur"
+    INDEX 01 0:57:00
+  TRACK 08 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur2"
+    INDEX 01 1:11:00
+  TRACK 09 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur"
+    INDEX 01 1420:19:00
+  TRACK 10 AUDIO
+    TITLE "Default"
+    PERFORMER "arthur"
+    INDEX 01 1438:09:00
