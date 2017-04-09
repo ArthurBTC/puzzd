@@ -217,7 +217,8 @@ def usersTimeCalculator(users, pns):
                             
 def test(request):
     return render(request,'mainapp/test.html',{})
-    
+
+@login_required    
 def butHandler(request):
     if request.method == "POST":
         
@@ -247,7 +248,8 @@ def butHandler(request):
         return HttpResponse('Ok')
         
     return redirect('/')    
-  
+ 
+@login_required 
 def newHandler(request):
     if request.method == "POST":
     
@@ -397,7 +399,8 @@ def nextUpdate(debate):
         nextUpdate(debate)
               
     ##S'il n'y a un going et un next, on ne fait rien...
-                                 
+
+@login_required    
 def nextHandler(request):
 
     debate = Debate.objects.get(pk = request.POST['iddebate'])
@@ -561,7 +564,8 @@ def audioPaths(iddebate):
         pn.save()
         i=i+1
         
-#Pour démarrer le débat (supprime tout, définit le creationTime)        
+#Pour démarrer le débat (supprime tout, définit le creationTime)  
+@user_passes_test(lambda u: u.is_superuser)      
 def startdebate(request, iddebate):
     debate = Debate.objects.get(pk = iddebate)
     Participation.objects.filter(debate=debate).delete()
